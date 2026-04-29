@@ -33,14 +33,37 @@
   header {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
-    padding: 1rem 1.25rem;
+    padding: 1rem 1.25rem .75rem;
     position: sticky;
     top: 0;
     z-index: 10;
     box-shadow: var(--shadow);
   }
   header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: -.3px; }
-  header p  { font-size: .78rem; color: var(--muted); margin-top: 1px; }
+
+  /* Tab bar */
+  .tabs {
+    display: flex;
+    gap: .25rem;
+    margin-top: .65rem;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: .38rem 0;
+    border: none;
+    background: var(--bg);
+    border-radius: 8px;
+    font-size: .82rem;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .tab-btn.active {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+  }
 
   .month-nav {
     display: flex;
@@ -62,13 +85,9 @@
     transition: background .15s;
   }
   .month-nav button:hover { background: var(--bg); }
-  .month-label {
-    flex: 1;
-    text-align: center;
-    font-weight: 600;
-    font-size: 1rem;
-  }
+  .month-label { flex: 1; text-align: center; font-weight: 600; font-size: 1rem; }
 
+  /* ── Goals view ── */
   .summary {
     margin: 1rem 1.25rem .5rem;
     background: var(--surface);
@@ -76,66 +95,25 @@
     padding: .9rem 1rem;
     box-shadow: var(--shadow);
   }
-  .summary-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: .5rem;
-  }
+  .summary-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem; }
   .summary-label { font-size: .82rem; color: var(--muted); }
   .summary-count { font-size: .9rem; font-weight: 600; }
-  .overall-bar {
-    height: 8px;
-    background: var(--border);
-    border-radius: 99px;
-    overflow: hidden;
-  }
-  .overall-bar-fill {
-    height: 100%;
-    background: var(--accent);
-    border-radius: 99px;
-    transition: width .4s ease;
-  }
+  .overall-bar { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .overall-bar-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width .4s ease; }
 
   .categories { padding: 0 1.25rem; display: flex; flex-direction: column; gap: .75rem; }
 
-  .card {
-    background: var(--surface);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-  }
-  .card-header {
-    display: flex;
-    align-items: center;
-    gap: .6rem;
-    padding: .85rem 1rem .6rem;
-    cursor: pointer;
-    user-select: none;
-  }
-  .cat-dot {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
+  .card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .card-header { display: flex; align-items: center; gap: .6rem; padding: .85rem 1rem .6rem; cursor: pointer; user-select: none; }
+  .cat-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
   .card-header h2 { font-size: .95rem; font-weight: 600; flex: 1; }
   .card-header .count { font-size: .78rem; color: var(--muted); }
   .chevron { font-size: .75rem; color: var(--muted); transition: transform .2s; }
   .card.collapsed .chevron { transform: rotate(-90deg); }
 
   .progress-wrap { padding: 0 1rem .75rem; }
-  .progress-bar {
-    height: 5px;
-    background: var(--border);
-    border-radius: 99px;
-    overflow: hidden;
-    margin-bottom: .1rem;
-  }
-  .progress-fill {
-    height: 100%;
-    border-radius: 99px;
-    transition: width .4s ease;
-  }
+  .progress-bar { height: 5px; background: var(--border); border-radius: 99px; overflow: hidden; margin-bottom: .1rem; }
+  .progress-fill { height: 100%; border-radius: 99px; transition: width .4s ease; }
   .progress-text { font-size: .7rem; color: var(--muted); }
 
   .goals-list { padding: 0 1rem; display: flex; flex-direction: column; gap: .4rem; }
@@ -143,126 +121,166 @@
   .card.collapsed .progress-wrap,
   .card.collapsed .add-row { display: none; }
 
-  .goal-item {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    padding: .6rem .5rem;
-    border-radius: 8px;
-    transition: background .15s;
-  }
+  .goal-item { display: flex; align-items: center; gap: .75rem; padding: .6rem .5rem; border-radius: 8px; transition: background .15s; }
   .goal-item:hover { background: var(--bg); }
 
   .goal-check {
-    width: 22px; height: 22px;
-    border: 2px solid var(--border);
-    border-radius: 6px;
-    flex-shrink: 0;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: .75rem;
-    transition: all .15s;
-    background: var(--surface);
+    width: 22px; height: 22px; border: 2px solid var(--border); border-radius: 6px;
+    flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: .75rem; transition: all .15s; background: var(--surface);
   }
-  .goal-check.done {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-  }
+  .goal-check.done { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-  .goal-title {
-    flex: 1;
-    font-size: .9rem;
-    line-height: 1.3;
-    cursor: pointer;
-    transition: color .15s;
-  }
-  .goal-title.done {
-    color: var(--muted);
-    text-decoration: line-through;
-  }
+  .goal-title { flex: 1; font-size: .9rem; line-height: 1.3; cursor: pointer; transition: color .15s; }
+  .goal-title.done { color: var(--muted); text-decoration: line-through; }
 
   .delete-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--muted);
-    font-size: 1.1rem;
-    line-height: 1;
-    padding: .15rem .3rem;
-    border-radius: 4px;
-    opacity: 0;
-    transition: opacity .15s, color .15s;
+    background: none; border: none; cursor: pointer; color: var(--muted);
+    font-size: 1.1rem; line-height: 1; padding: .15rem .3rem; border-radius: 4px;
+    opacity: 0; transition: opacity .15s, color .15s;
   }
   .goal-item:hover .delete-btn { opacity: 1; }
   .delete-btn:hover { color: var(--danger); }
-
-  /* always show delete on touch devices */
   @media (hover: none) { .delete-btn { opacity: .4; } }
 
-  .add-row {
-    display: flex;
-    gap: .5rem;
-    padding: .6rem 1rem .9rem;
-  }
+  .add-row { display: flex; gap: .5rem; padding: .6rem 1rem .9rem; }
   .add-input {
-    flex: 1;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: .5rem .75rem;
-    font-size: .88rem;
-    outline: none;
-    background: var(--bg);
-    transition: border-color .15s;
+    flex: 1; border: 1px solid var(--border); border-radius: 8px; padding: .5rem .75rem;
+    font-size: .88rem; outline: none; background: var(--bg); transition: border-color .15s;
   }
   .add-input:focus { border-color: var(--accent); background: #fff; }
   .add-btn {
+    background: var(--accent); color: #fff; border: none; border-radius: 8px;
+    padding: .5rem .9rem; font-size: .88rem; font-weight: 600; cursor: pointer;
+    transition: opacity .15s; white-space: nowrap;
+  }
+  .add-btn:hover { opacity: .85; }
+  .empty { text-align: center; padding: .6rem 0 .4rem; color: var(--muted); font-size: .82rem; }
+
+  /* ── Time Budget view ── */
+  #view-time { padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
+
+  .time-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1rem;
+  }
+  .time-card-title {
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: .75rem;
+  }
+
+  /* Stacked horizontal bar */
+  .stacked-bar {
+    display: flex;
+    height: 28px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: .75rem;
+    gap: 1px;
+  }
+  .stacked-seg { transition: flex .4s ease; cursor: default; }
+
+  /* Legend */
+  .legend { display: flex; flex-wrap: wrap; gap: .4rem .9rem; }
+  .legend-item { display: flex; align-items: center; gap: .35rem; font-size: .78rem; }
+  .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+  /* Editable rows */
+  .time-rows { display: flex; flex-direction: column; gap: .5rem; }
+  .time-row {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .5rem .25rem;
+    border-radius: 8px;
+  }
+  .time-row-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .time-row-label { flex: 1; font-size: .88rem; font-weight: 500; }
+  .time-row-hrs { font-size: .78rem; color: var(--muted); min-width: 3.5rem; text-align: right; }
+  .pct-input {
+    width: 52px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: .3rem .4rem;
+    font-size: .88rem;
+    text-align: center;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .pct-input:focus { border-color: var(--accent); }
+
+  .time-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: .6rem;
+    border-top: 1px solid var(--border);
+    font-size: .82rem;
+  }
+  .time-total-label { color: var(--muted); }
+  .time-total-val { font-weight: 700; }
+  .time-total-val.over { color: var(--danger); }
+  .time-total-val.ok   { color: #10b981; }
+
+  .time-note-wrap { margin-top: .5rem; }
+  .time-note {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .5rem .75rem;
+    font-size: .82rem;
+    font-family: inherit;
+    resize: none;
+    outline: none;
+    background: var(--bg);
+    color: var(--text);
+    transition: border-color .15s;
+    line-height: 1.5;
+  }
+  .time-note:focus { border-color: var(--accent); background: #fff; }
+
+  .save-btn {
+    margin-top: .6rem;
+    width: 100%;
     background: var(--accent);
     color: #fff;
     border: none;
     border-radius: 8px;
-    padding: .5rem .9rem;
-    font-size: .88rem;
+    padding: .6rem;
+    font-size: .9rem;
     font-weight: 600;
     cursor: pointer;
     transition: opacity .15s;
-    white-space: nowrap;
   }
-  .add-btn:hover { opacity: .85; }
+  .save-btn:hover { opacity: .85; }
 
-  .empty {
-    text-align: center;
-    padding: .6rem 0 .4rem;
-    color: var(--muted);
-    font-size: .82rem;
-  }
-
+  /* Toast */
   .toast {
-    position: fixed;
-    bottom: 1.5rem;
-    left: 50%;
+    position: fixed; bottom: 1.5rem; left: 50%;
     transform: translateX(-50%) translateY(2rem);
-    background: #1a1a1a;
-    color: #fff;
-    padding: .6rem 1.1rem;
-    border-radius: 99px;
-    font-size: .85rem;
-    opacity: 0;
-    pointer-events: none;
-    transition: all .25s;
-    z-index: 100;
-    white-space: nowrap;
+    background: #1a1a1a; color: #fff; padding: .6rem 1.1rem;
+    border-radius: 99px; font-size: .85rem; opacity: 0;
+    pointer-events: none; transition: all .25s; z-index: 100; white-space: nowrap;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .hidden { display: none !important; }
 </style>
 </head>
 <body>
 
 <header>
   <h1>Goals Tracker</h1>
-  <p>Monthly goals, built for momentum</p>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="goals">Goals</button>
+    <button class="tab-btn" data-tab="time">Time Budget</button>
+  </div>
 </header>
 
 <div class="month-nav">
@@ -271,22 +289,51 @@
   <button id="next-month">&#8250;</button>
 </div>
 
-<div class="summary">
-  <div class="summary-row">
-    <span class="summary-label">Overall progress</span>
-    <span class="summary-count" id="overall-count">0 / 0</span>
+<!-- Goals view -->
+<div id="view-goals">
+  <div class="summary">
+    <div class="summary-row">
+      <span class="summary-label">Overall progress</span>
+      <span class="summary-count" id="overall-count">0 / 0</span>
+    </div>
+    <div class="overall-bar">
+      <div class="overall-bar-fill" id="overall-fill" style="width:0%"></div>
+    </div>
   </div>
-  <div class="overall-bar">
-    <div class="overall-bar-fill" id="overall-fill" style="width:0%"></div>
-  </div>
+  <div class="categories" id="categories"></div>
 </div>
 
-<div class="categories" id="categories"></div>
+<!-- Time Budget view -->
+<div id="view-time" class="hidden">
+
+  <div class="time-card">
+    <div class="time-card-title">Time allocation</div>
+    <div class="stacked-bar" id="stacked-bar"></div>
+    <div class="legend" id="time-legend"></div>
+  </div>
+
+  <div class="time-card">
+    <div class="time-card-title">Edit budget</div>
+    <div class="time-rows" id="time-rows"></div>
+    <div class="time-total-row">
+      <span class="time-total-label">Total</span>
+      <span class="time-total-val" id="time-total">0%</span>
+    </div>
+    <div class="time-note-wrap">
+      <textarea class="time-note" id="time-note" rows="2" placeholder="Add a note (e.g. ~146 hrs free time in May)"></textarea>
+    </div>
+    <button class="save-btn" id="save-time-btn">Save</button>
+  </div>
+
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, orderBy, onSnapshot,
+         addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAvyuccZDY7rsjLlHe3vaN1VN3V5Fsr-d0",
@@ -300,7 +347,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
-const CATEGORIES = [
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const GOAL_CATS = [
   { key: "health",   label: "Health & Fitness",  color: "var(--c-health)"   },
   { key: "work",     label: "Work & Career",      color: "var(--c-work)"     },
   { key: "habits",   label: "Personal Habits",    color: "var(--c-habits)"   },
@@ -308,9 +357,30 @@ const CATEGORIES = [
   { key: "learning", label: "Learning & Skills",  color: "var(--c-learning)" },
 ];
 
+const DEFAULT_TIME = [
+  { label: "Free / Buffer",    color: "#9ca3af", pct: 25 },
+  { label: "Career",           color: "#6366f1", pct: 20 },
+  { label: "Health & Wellness",color: "#10b981", pct: 15 },
+  { label: "Relationships",    color: "#ec4899", pct: 15 },
+  { label: "Personal Growth",  color: "#3b82f6", pct: 10 },
+  { label: "Hobbies",          color: "#f59e0b", pct: 10 },
+  { label: "Home / Apt",       color: "#065f46", pct: 3  },
+  { label: "Finances",         color: "#84cc16", pct: 2  },
+];
+
+const HOURS_IN_MONTH = 730;
+
+// ── State ─────────────────────────────────────────────────────────────────────
+
 let currentMonth = todayMonth();
-let goals = [];
-let unsubscribe = null;
+let activeTab    = "goals";
+let goals        = [];
+let timeBudget   = DEFAULT_TIME.map(t => ({ ...t }));
+let timeNote     = "";
+let unsubGoals   = null;
+let unsubTime    = null;
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function todayMonth() {
   const d = new Date();
@@ -328,28 +398,57 @@ function shiftMonth(ym, delta) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
 }
 
-// ── Firestore real-time listener ──────────────────────────────────────────────
+function escHtml(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
 
-function subscribe(month) {
-  if (unsubscribe) unsubscribe();
-  const q = query(
-    collection(db, "goals"),
-    where("month", "==", month),
-    orderBy("createdAt")
-  );
-  unsubscribe = onSnapshot(q, snap => {
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 1800);
+}
+
+// ── Subscriptions ─────────────────────────────────────────────────────────────
+
+function subscribeGoals(month) {
+  if (unsubGoals) unsubGoals();
+  const q = query(collection(db, "goals"), where("month", "==", month), orderBy("createdAt"));
+  unsubGoals = onSnapshot(q, snap => {
     goals = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    render();
+    renderGoals();
   });
 }
 
-// ── Actions ───────────────────────────────────────────────────────────────────
+function subscribeTime(month) {
+  if (unsubTime) unsubTime();
+  const ref = doc(db, "timeBudget", month);
+  unsubTime = onSnapshot(ref, snap => {
+    if (snap.exists()) {
+      const data = snap.data();
+      timeBudget = data.categories;
+      timeNote   = data.note || "";
+    } else {
+      timeBudget = DEFAULT_TIME.map(t => ({ ...t }));
+      timeNote   = "";
+    }
+    renderTime();
+  });
+}
+
+function subscribe(month) {
+  subscribeGoals(month);
+  subscribeTime(month);
+}
+
+// ── Goals actions ─────────────────────────────────────────────────────────────
 
 async function addGoal(category, title) {
   await addDoc(collection(db, "goals"), {
     month: currentMonth, category, title,
-    completed: false,
-    createdAt: serverTimestamp()
+    completed: false, createdAt: serverTimestamp()
   });
 }
 
@@ -361,27 +460,37 @@ async function deleteGoal(id) {
   await deleteDoc(doc(db, "goals", id));
 }
 
-// ── Render ────────────────────────────────────────────────────────────────────
+// ── Time budget actions ───────────────────────────────────────────────────────
 
-function render() {
-  document.getElementById("month-label").textContent = monthLabel(currentMonth);
+async function saveTimeBudget() {
+  const inputs = document.querySelectorAll(".pct-input");
+  const note   = document.getElementById("time-note").value.trim();
+  const cats   = timeBudget.map((t, i) => ({
+    ...t,
+    pct: Math.max(0, Math.min(100, Number(inputs[i].value) || 0))
+  }));
+  await setDoc(doc(db, "timeBudget", currentMonth), { categories: cats, note });
+  toast("Saved!");
+}
 
+// ── Render: Goals ─────────────────────────────────────────────────────────────
+
+function renderGoals() {
   const total = goals.length;
   const done  = goals.filter(g => g.completed).length;
   document.getElementById("overall-count").textContent = `${done} / ${total}`;
-  document.getElementById("overall-fill").style.width = total ? `${Math.round(done/total*100)}%` : "0%";
+  document.getElementById("overall-fill").style.width  = total ? `${Math.round(done/total*100)}%` : "0%";
 
   const container = document.getElementById("categories");
   container.innerHTML = "";
 
-  for (const cat of CATEGORIES) {
+  for (const cat of GOAL_CATS) {
     const catGoals = goals.filter(g => g.category === cat.key);
     const catDone  = catGoals.filter(g => g.completed).length;
-    const pct = catGoals.length ? Math.round(catDone / catGoals.length * 100) : 0;
+    const pct      = catGoals.length ? Math.round(catDone / catGoals.length * 100) : 0;
 
     const card = document.createElement("div");
     card.className = "card";
-
     card.innerHTML = `
       <div class="card-header">
         <div class="cat-dot" style="background:${cat.color}"></div>
@@ -408,28 +517,24 @@ function render() {
     card.querySelector(`#input-${cat.key}`).addEventListener("keydown", e => {
       if (e.key === "Enter") handleAdd(cat.key);
     });
-
     container.appendChild(card);
 
     const list = document.getElementById(`list-${cat.key}`);
-    if (catGoals.length === 0) {
+    if (!catGoals.length) {
       list.innerHTML = `<div class="empty">No goals yet — add one below</div>`;
     } else {
       for (const g of catGoals) {
         const item = document.createElement("div");
         item.className = "goal-item";
         item.innerHTML = `
-          <div class="goal-check ${g.completed ? 'done' : ''}">
-            ${g.completed ? '✓' : ''}
-          </div>
+          <div class="goal-check ${g.completed ? 'done' : ''}">${g.completed ? '✓' : ''}</div>
           <div class="goal-title ${g.completed ? 'done' : ''}">${escHtml(g.title)}</div>
           <button class="delete-btn" title="Delete">×</button>
         `;
         item.querySelector(".goal-check").addEventListener("click", () => toggleGoal(g.id, g.completed));
         item.querySelector(".goal-title").addEventListener("click", () => toggleGoal(g.id, g.completed));
         item.querySelector(".delete-btn").addEventListener("click", async () => {
-          await deleteGoal(g.id);
-          toast("Goal removed");
+          await deleteGoal(g.id); toast("Goal removed");
         });
         list.appendChild(item);
       }
@@ -447,28 +552,100 @@ async function handleAdd(cat) {
   setTimeout(() => { const el = document.getElementById(`input-${cat}`); if (el) el.focus(); }, 50);
 }
 
-function escHtml(s) {
-  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+// ── Render: Time Budget ───────────────────────────────────────────────────────
+
+function renderTime() {
+  const totalPct = timeBudget.reduce((s, t) => s + t.pct, 0);
+
+  // Stacked bar
+  const bar = document.getElementById("stacked-bar");
+  bar.innerHTML = "";
+  for (const t of timeBudget) {
+    if (t.pct <= 0) continue;
+    const seg = document.createElement("div");
+    seg.className = "stacked-seg";
+    seg.style.flex = t.pct;
+    seg.style.background = t.color;
+    seg.title = `${t.label}: ${t.pct}%`;
+    bar.appendChild(seg);
+  }
+
+  // Legend
+  const legend = document.getElementById("time-legend");
+  legend.innerHTML = timeBudget.map(t =>
+    `<div class="legend-item">
+      <div class="legend-dot" style="background:${t.color}"></div>
+      <span>${t.label} — ${t.pct}%</span>
+    </div>`
+  ).join("");
+
+  // Editable rows
+  const rows = document.getElementById("time-rows");
+  rows.innerHTML = "";
+  timeBudget.forEach((t, i) => {
+    const hrs = Math.round((t.pct / 100) * HOURS_IN_MONTH);
+    const row = document.createElement("div");
+    row.className = "time-row";
+    row.innerHTML = `
+      <div class="time-row-dot" style="background:${t.color}"></div>
+      <div class="time-row-label">${t.label}</div>
+      <div class="time-row-hrs">~${hrs} hrs</div>
+      <input class="pct-input" type="number" min="0" max="100" value="${t.pct}" data-i="${i}">
+      <span style="font-size:.82rem;color:var(--muted)">%</span>
+    `;
+    row.querySelector(".pct-input").addEventListener("input", updateTotalPreview);
+    rows.appendChild(row);
+  });
+
+  // Note
+  document.getElementById("time-note").value = timeNote;
+
+  // Total
+  updateTotalPreview();
 }
 
-let toastTimer;
-function toast(msg) {
-  const el = document.getElementById("toast");
-  el.textContent = msg;
-  el.classList.add("show");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove("show"), 1800);
+function updateTotalPreview() {
+  const inputs = document.querySelectorAll(".pct-input");
+  let sum = 0;
+  inputs.forEach(inp => {
+    const i = Number(inp.dataset.i);
+    const v = Math.max(0, Math.min(100, Number(inp.value) || 0));
+    sum += v;
+    // live update hrs
+    const hrs = Math.round((v / 100) * HOURS_IN_MONTH);
+    inp.closest(".time-row").querySelector(".time-row-hrs").textContent = `~${hrs} hrs`;
+  });
+  const el = document.getElementById("time-total");
+  el.textContent = `${sum}%`;
+  el.className = "time-total-val " + (sum === 100 ? "ok" : "over");
 }
 
-document.getElementById("prev-month").addEventListener("click", () => {
-  currentMonth = shiftMonth(currentMonth, -1);
-  subscribe(currentMonth);
-});
-document.getElementById("next-month").addEventListener("click", () => {
-  currentMonth = shiftMonth(currentMonth, 1);
-  subscribe(currentMonth);
-});
+// ── Tab switching ─────────────────────────────────────────────────────────────
 
+function setTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+  document.getElementById("view-goals").classList.toggle("hidden", tab !== "goals");
+  document.getElementById("view-time").classList.toggle("hidden",  tab !== "time");
+}
+
+document.querySelectorAll(".tab-btn").forEach(b => b.addEventListener("click", () => setTab(b.dataset.tab)));
+
+// ── Month nav ─────────────────────────────────────────────────────────────────
+
+function setMonth(m) {
+  currentMonth = m;
+  document.getElementById("month-label").textContent = monthLabel(m);
+  subscribe(m);
+}
+
+document.getElementById("prev-month").addEventListener("click", () => setMonth(shiftMonth(currentMonth, -1)));
+document.getElementById("next-month").addEventListener("click", () => setMonth(shiftMonth(currentMonth, 1)));
+document.getElementById("save-time-btn").addEventListener("click", saveTimeBudget);
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+
+document.getElementById("month-label").textContent = monthLabel(currentMonth);
 subscribe(currentMonth);
 </script>
 </body>
