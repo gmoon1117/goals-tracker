@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Goals Tracker</title>
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --surface: #ffffff;
+    --border: #e8e8e5;
+    --text: #1a1a1a;
+    --muted: #8a8a8a;
+    --accent: #4f46e5;
+    --danger: #ef4444;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+    --c-health:   #10b981;
+    --c-work:     #3b82f6;
+    --c-habits:   #f59e0b;
+    --c-finance:  #8b5cf6;
+    --c-learning: #ec4899;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 2rem;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.25rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: var(--shadow);
+  }
+  header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: -.3px; }
+  header p  { font-size: .78rem; color: var(--muted); margin-top: 1px; }
+
+  .month-nav {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .9rem 1.25rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .month-nav button {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .4rem .7rem;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--text);
+    line-height: 1;
+    transition: background .15s;
+  }
+  .month-nav button:hover { background: var(--bg); }
+  .month-label {
+    flex: 1;
+    text-align: center;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  .summary {
+    margin: 1rem 1.25rem .5rem;
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: .9rem 1rem;
+    box-shadow: var(--shadow);
+  }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: .5rem;
+  }
+  .summary-label { font-size: .82rem; color: var(--muted); }
+  .summary-count { font-size: .9rem; font-weight: 600; }
+  .overall-bar {
+    height: 8px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .overall-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 99px;
+    transition: width .4s ease;
+  }
+
+  .categories { padding: 0 1.25rem; display: flex; flex-direction: column; gap: .75rem; }
+
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .85rem 1rem .6rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  .cat-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .card-header h2 { font-size: .95rem; font-weight: 600; flex: 1; }
+  .card-header .count { font-size: .78rem; color: var(--muted); }
+  .chevron { font-size: .75rem; color: var(--muted); transition: transform .2s; }
+  .card.collapsed .chevron { transform: rotate(-90deg); }
+
+  .progress-wrap { padding: 0 1rem .75rem; }
+  .progress-bar {
+    height: 5px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: .1rem;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width .4s ease;
+  }
+  .progress-text { font-size: .7rem; color: var(--muted); }
+
+  .goals-list { padding: 0 1rem; display: flex; flex-direction: column; gap: .4rem; }
+  .card.collapsed .goals-list,
+  .card.collapsed .progress-wrap,
+  .card.collapsed .add-row { display: none; }
+
+  .goal-item {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .6rem .5rem;
+    border-radius: 8px;
+    transition: background .15s;
+  }
+  .goal-item:hover { background: var(--bg); }
+
+  .goal-check {
+    width: 22px; height: 22px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .75rem;
+    transition: all .15s;
+    background: var(--surface);
+  }
+  .goal-check.done {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .goal-title {
+    flex: 1;
+    font-size: .9rem;
+    line-height: 1.3;
+    cursor: pointer;
+    transition: color .15s;
+  }
+  .goal-title.done {
+    color: var(--muted);
+    text-decoration: line-through;
+  }
+
+  .delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: .15rem .3rem;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity .15s, color .15s;
+  }
+  .goal-item:hover .delete-btn { opacity: 1; }
+  .delete-btn:hover { color: var(--danger); }
+
+  /* always show delete on touch devices */
+  @media (hover: none) { .delete-btn { opacity: .4; } }
+
+  .add-row {
+    display: flex;
+    gap: .5rem;
+    padding: .6rem 1rem .9rem;
+  }
+  .add-input {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .5rem .75rem;
+    font-size: .88rem;
+    outline: none;
+    background: var(--bg);
+    transition: border-color .15s;
+  }
+  .add-input:focus { border-color: var(--accent); background: #fff; }
+  .add-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: .5rem .9rem;
+    font-size: .88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .15s;
+    white-space: nowrap;
+  }
+  .add-btn:hover { opacity: .85; }
+
+  .empty {
+    text-align: center;
+    padding: .6rem 0 .4rem;
+    color: var(--muted);
+    font-size: .82rem;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(2rem);
+    background: #1a1a1a;
+    color: #fff;
+    padding: .6rem 1.1rem;
+    border-radius: 99px;
+    font-size: .85rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: all .25s;
+    z-index: 100;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Goals Tracker</h1>
+  <p>Monthly goals, built for momentum</p>
+</header>
+
+<div class="month-nav">
+  <button id="prev-month">&#8249;</button>
+  <div class="month-label" id="month-label">—</div>
+  <button id="next-month">&#8250;</button>
+</div>
+
+<div class="summary">
+  <div class="summary-row">
+    <span class="summary-label">Overall progress</span>
+    <span class="summary-count" id="overall-count">0 / 0</span>
+  </div>
+  <div class="overall-bar">
+    <div class="overall-bar-fill" id="overall-fill" style="width:0%"></div>
+  </div>
+</div>
+
+<div class="categories" id="categories"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const CATEGORIES = [
+  { key: "health",   label: "Health & Fitness",  color: "var(--c-health)"   },
+  { key: "work",     label: "Work & Career",      color: "var(--c-work)"     },
+  { key: "habits",   label: "Personal Habits",    color: "var(--c-habits)"   },
+  { key: "finance",  label: "Financial",          color: "var(--c-finance)"  },
+  { key: "learning", label: "Learning & Skills",  color: "var(--c-learning)" },
+];
+
+let currentMonth = todayMonth();
+
+function todayMonth() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+function monthLabel(ym) {
+  const [y, m] = ym.split("-").map(Number);
+  return new Date(y, m-1, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+}
+
+function shiftMonth(ym, delta) {
+  const [y, m] = ym.split("-").map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+// ── Storage ──────────────────────────────────────────────────────────────────
+
+function storageKey(month) { return `goals-${month}`; }
+
+function loadGoals(month) {
+  try { return JSON.parse(localStorage.getItem(storageKey(month)) || "[]"); }
+  catch { return []; }
+}
+
+function saveGoals(month, goals) {
+  localStorage.setItem(storageKey(month), JSON.stringify(goals));
+}
+
+function nextId(goals) {
+  return goals.length ? Math.max(...goals.map(g => g.id)) + 1 : 1;
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+
+function addGoal(month, category, title) {
+  const goals = loadGoals(month);
+  const goal = { id: nextId(goals), month, category, title, completed: false };
+  goals.push(goal);
+  saveGoals(month, goals);
+  return goal;
+}
+
+function toggleGoal(month, id) {
+  const goals = loadGoals(month);
+  const g = goals.find(g => g.id === id);
+  if (g) g.completed = !g.completed;
+  saveGoals(month, goals);
+}
+
+function deleteGoal(month, id) {
+  const goals = loadGoals(month).filter(g => g.id !== id);
+  saveGoals(month, goals);
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+
+function render() {
+  const goals = loadGoals(currentMonth);
+  document.getElementById("month-label").textContent = monthLabel(currentMonth);
+
+  const total = goals.length;
+  const done  = goals.filter(g => g.completed).length;
+  document.getElementById("overall-count").textContent = `${done} / ${total}`;
+  document.getElementById("overall-fill").style.width = total ? `${Math.round(done/total*100)}%` : "0%";
+
+  const container = document.getElementById("categories");
+  container.innerHTML = "";
+
+  for (const cat of CATEGORIES) {
+    const catGoals = goals.filter(g => g.category === cat.key);
+    const catDone  = catGoals.filter(g => g.completed).length;
+    const pct = catGoals.length ? Math.round(catDone / catGoals.length * 100) : 0;
+
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <div class="card-header">
+        <div class="cat-dot" style="background:${cat.color}"></div>
+        <h2>${cat.label}</h2>
+        <span class="count">${catDone}/${catGoals.length}</span>
+        <span class="chevron">&#9660;</span>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar">
+          <div class="progress-fill" style="background:${cat.color}; width:${pct}%"></div>
+        </div>
+        <div class="progress-text">${pct}% complete</div>
+      </div>
+      <div class="goals-list" id="list-${cat.key}"></div>
+      <div class="add-row">
+        <input class="add-input" type="text" placeholder="Add a goal…" maxlength="120"
+               id="input-${cat.key}" autocomplete="off">
+        <button class="add-btn" data-cat="${cat.key}">Add</button>
+      </div>
+    `;
+
+    card.querySelector(".card-header").addEventListener("click", () => card.classList.toggle("collapsed"));
+
+    card.querySelector(".add-btn").addEventListener("click", () => handleAdd(cat.key));
+    card.querySelector(`#input-${cat.key}`).addEventListener("keydown", e => {
+      if (e.key === "Enter") handleAdd(cat.key);
+    });
+
+    container.appendChild(card);
+
+    const list = document.getElementById(`list-${cat.key}`);
+    if (catGoals.length === 0) {
+      list.innerHTML = `<div class="empty">No goals yet — add one below</div>`;
+    } else {
+      for (const g of catGoals) {
+        const item = document.createElement("div");
+        item.className = "goal-item";
+        item.innerHTML = `
+          <div class="goal-check ${g.completed ? 'done' : ''}">
+            ${g.completed ? '✓' : ''}
+          </div>
+          <div class="goal-title ${g.completed ? 'done' : ''}">${escHtml(g.title)}</div>
+          <button class="delete-btn" title="Delete">×</button>
+        `;
+        item.querySelector(".goal-check").addEventListener("click", () => { toggleGoal(currentMonth, g.id); render(); });
+        item.querySelector(".goal-title").addEventListener("click", () => { toggleGoal(currentMonth, g.id); render(); });
+        item.querySelector(".delete-btn").addEventListener("click", () => { deleteGoal(currentMonth, g.id); render(); toast("Goal removed"); });
+        list.appendChild(item);
+      }
+    }
+  }
+}
+
+function handleAdd(cat) {
+  const input = document.getElementById(`input-${cat}`);
+  const title = input.value.trim();
+  if (!title) { input.focus(); return; }
+  input.value = "";
+  addGoal(currentMonth, cat, title);
+  render();
+  toast("Goal added");
+  setTimeout(() => { const el = document.getElementById(`input-${cat}`); if (el) el.focus(); }, 50);
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 1800);
+}
+
+document.getElementById("prev-month").addEventListener("click", () => { currentMonth = shiftMonth(currentMonth, -1); render(); });
+document.getElementById("next-month").addEventListener("click", () => { currentMonth = shiftMonth(currentMonth, 1); render(); });
+
+render();
+</script>
+</body>
+</html>
