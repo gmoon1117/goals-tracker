@@ -284,7 +284,22 @@
 <div class="categories" id="categories"></div>
 <div class="toast" id="toast"></div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAvyuccZDY7rsjLlHe3vaN1VN3V5Fsr-d0",
+  authDomain: "goals-tracker-012.firebaseapp.com",
+  projectId: "goals-tracker-012",
+  storageBucket: "goals-tracker-012.firebasestorage.app",
+  messagingSenderId: "659330489874",
+  appId: "1:659330489874:web:517bca63216cf6354882cb"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
 const CATEGORIES = [
   { key: "health",   label: "Health & Fitness",  color: "var(--c-health)"   },
   { key: "work",     label: "Work & Career",      color: "var(--c-work)"     },
@@ -294,6 +309,8 @@ const CATEGORIES = [
 ];
 
 let currentMonth = todayMonth();
+let goals = [];
+let unsubscribe = null;
 
 function todayMonth() {
   const d = new Date();
@@ -311,49 +328,42 @@ function shiftMonth(ym, delta) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
 }
 
-// ── Storage ──────────────────────────────────────────────────────────────────
+// ── Firestore real-time listener ──────────────────────────────────────────────
 
-function storageKey(month) { return `goals-${month}`; }
-
-function loadGoals(month) {
-  try { return JSON.parse(localStorage.getItem(storageKey(month)) || "[]"); }
-  catch { return []; }
-}
-
-function saveGoals(month, goals) {
-  localStorage.setItem(storageKey(month), JSON.stringify(goals));
-}
-
-function nextId(goals) {
-  return goals.length ? Math.max(...goals.map(g => g.id)) + 1 : 1;
+function subscribe(month) {
+  if (unsubscribe) unsubscribe();
+  const q = query(
+    collection(db, "goals"),
+    where("month", "==", month),
+    orderBy("createdAt")
+  );
+  unsubscribe = onSnapshot(q, snap => {
+    goals = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    render();
+  });
 }
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 
-function addGoal(month, category, title) {
-  const goals = loadGoals(month);
-  const goal = { id: nextId(goals), month, category, title, completed: false };
-  goals.push(goal);
-  saveGoals(month, goals);
-  return goal;
+async function addGoal(category, title) {
+  await addDoc(collection(db, "goals"), {
+    month: currentMonth, category, title,
+    completed: false,
+    createdAt: serverTimestamp()
+  });
 }
 
-function toggleGoal(month, id) {
-  const goals = loadGoals(month);
-  const g = goals.find(g => g.id === id);
-  if (g) g.completed = !g.completed;
-  saveGoals(month, goals);
+async function toggleGoal(id, current) {
+  await updateDoc(doc(db, "goals", id), { completed: !current });
 }
 
-function deleteGoal(month, id) {
-  const goals = loadGoals(month).filter(g => g.id !== id);
-  saveGoals(month, goals);
+async function deleteGoal(id) {
+  await deleteDoc(doc(db, "goals", id));
 }
 
 // ── Render ────────────────────────────────────────────────────────────────────
 
 function render() {
-  const goals = loadGoals(currentMonth);
   document.getElementById("month-label").textContent = monthLabel(currentMonth);
 
   const total = goals.length;
@@ -394,7 +404,6 @@ function render() {
     `;
 
     card.querySelector(".card-header").addEventListener("click", () => card.classList.toggle("collapsed"));
-
     card.querySelector(".add-btn").addEventListener("click", () => handleAdd(cat.key));
     card.querySelector(`#input-${cat.key}`).addEventListener("keydown", e => {
       if (e.key === "Enter") handleAdd(cat.key);
@@ -416,22 +425,24 @@ function render() {
           <div class="goal-title ${g.completed ? 'done' : ''}">${escHtml(g.title)}</div>
           <button class="delete-btn" title="Delete">×</button>
         `;
-        item.querySelector(".goal-check").addEventListener("click", () => { toggleGoal(currentMonth, g.id); render(); });
-        item.querySelector(".goal-title").addEventListener("click", () => { toggleGoal(currentMonth, g.id); render(); });
-        item.querySelector(".delete-btn").addEventListener("click", () => { deleteGoal(currentMonth, g.id); render(); toast("Goal removed"); });
+        item.querySelector(".goal-check").addEventListener("click", () => toggleGoal(g.id, g.completed));
+        item.querySelector(".goal-title").addEventListener("click", () => toggleGoal(g.id, g.completed));
+        item.querySelector(".delete-btn").addEventListener("click", async () => {
+          await deleteGoal(g.id);
+          toast("Goal removed");
+        });
         list.appendChild(item);
       }
     }
   }
 }
 
-function handleAdd(cat) {
+async function handleAdd(cat) {
   const input = document.getElementById(`input-${cat}`);
   const title = input.value.trim();
   if (!title) { input.focus(); return; }
   input.value = "";
-  addGoal(currentMonth, cat, title);
-  render();
+  await addGoal(cat, title);
   toast("Goal added");
   setTimeout(() => { const el = document.getElementById(`input-${cat}`); if (el) el.focus(); }, 50);
 }
@@ -449,10 +460,16 @@ function toast(msg) {
   toastTimer = setTimeout(() => el.classList.remove("show"), 1800);
 }
 
-document.getElementById("prev-month").addEventListener("click", () => { currentMonth = shiftMonth(currentMonth, -1); render(); });
-document.getElementById("next-month").addEventListener("click", () => { currentMonth = shiftMonth(currentMonth, 1); render(); });
+document.getElementById("prev-month").addEventListener("click", () => {
+  currentMonth = shiftMonth(currentMonth, -1);
+  subscribe(currentMonth);
+});
+document.getElementById("next-month").addEventListener("click", () => {
+  currentMonth = shiftMonth(currentMonth, 1);
+  subscribe(currentMonth);
+});
 
-render();
+subscribe(currentMonth);
 </script>
 </body>
 </html>
