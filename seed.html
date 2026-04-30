@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Seed May Goals</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 500px; margin: 3rem auto; padding: 1rem; }
+  button { background: #4f46e5; color: #fff; border: none; border-radius: 8px; padding: .75rem 1.5rem; font-size: 1rem; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: default; }
+  #log { margin-top: 1.5rem; font-size: .85rem; line-height: 1.8; color: #333; }
+  .ok { color: #10b981; } .err { color: #ef4444; }
+</style>
+</head>
+<body>
+<h2>Seed May 2026 Goals</h2>
+<p style="color:#666;font-size:.9rem;margin:.5rem 0 1.5rem">Click once to add your 12 goals to Firestore. Safe to run again — it only adds, never deletes.</p>
+<button id="btn">Add goals to May 2026</button>
+<div id="log"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyAvyuccZDY7rsjLlHe3vaN1VN3V5Fsr-d0",
+  authDomain: "goals-tracker-012.firebaseapp.com",
+  projectId: "goals-tracker-012",
+  storageBucket: "goals-tracker-012.firebasestorage.app",
+  messagingSenderId: "659330489874",
+  appId: "1:659330489874:web:517bca63216cf6354882cb"
+});
+const db = getFirestore(app);
+
+const GOALS = [
+  { category: "work",    title: "Get clear on what kind of role / company I actually want" },
+  { category: "work",    title: "Update resume and LinkedIn" },
+  { category: "work",    title: "Submit at least 2-3 intentional job applications" },
+  { category: "work",    title: "Reach out to 1 mentor or person in a role I'm interested in" },
+  { category: "health",  title: "Keep running consistently (any distance counts)" },
+  { category: "health",  title: "Use ClassPass at least twice" },
+  { category: "health",  title: "Cook at home when you can — breakfast counts" },
+  { category: "habits",  title: "Get a haircut" },
+  { category: "habits",  title: "Do something about my eyebrows" },
+  { category: "habits",  title: "Do at least one weekly check-in here" },
+  { category: "home",    title: "Research 2-3 neighborhoods to potentially move to" },
+  { category: "home",    title: "Schedule and go on at least 1 apartment tour" },
+];
+
+document.getElementById("btn").addEventListener("click", async () => {
+  const btn = document.getElementById("btn");
+  const log = document.getElementById("log");
+  btn.disabled = true;
+  log.innerHTML = "Checking existing goals…<br>";
+
+  // Fetch existing titles for May to avoid duplicates
+  const existing = await getDocs(query(collection(db, "goals"), where("month", "==", "2026-05")));
+  const existingTitles = new Set(existing.docs.map(d => d.data().title));
+
+  let added = 0, skipped = 0;
+  for (const g of GOALS) {
+    if (existingTitles.has(g.title)) {
+      log.innerHTML += `<span style="color:#aaa">↷ skipped (already exists): ${g.title}</span><br>`;
+      skipped++;
+    } else {
+      await addDoc(collection(db, "goals"), {
+        month: "2026-05",
+        category: g.category,
+        title: g.title,
+        completed: false,
+        createdAt: serverTimestamp()
+      });
+      log.innerHTML += `<span class="ok">✓ added: ${g.title}</span><br>`;
+      added++;
+    }
+  }
+  log.innerHTML += `<br><strong>Done! ${added} added, ${skipped} skipped.</strong>`;
+  if (added > 0) log.innerHTML += `<br>Now open your <a href="index.html">Goals Tracker</a> and navigate to May 2026.`;
+  btn.disabled = false;
+});
+</script>
+</body>
+</html>
