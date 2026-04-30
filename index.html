@@ -149,31 +149,51 @@
   .add-row {
     display: flex;
     gap: .5rem;
-    margin-top: .5rem;
+    margin-top: .6rem;
+    padding: .5rem .6rem;
+    background: #f0f0fe;
+    border-radius: 8px;
+    border: 1px dashed #c7c7f9;
   }
   .add-input {
     flex: 1;
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    padding: .4rem .65rem;
+    border: none;
+    border-radius: 6px;
+    padding: .35rem .5rem;
     font-size: .85rem;
     outline: none;
-    background: var(--surface);
-    transition: border-color .15s;
+    background: transparent;
+    color: var(--text);
   }
-  .add-input:focus { border-color: var(--accent); }
+  .add-input::placeholder { color: #a5a5c8; }
   .add-btn {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    padding: .4rem .75rem;
-    font-size: .82rem;
+    background: var(--accent);
+    border: none;
+    border-radius: 6px;
+    padding: .35rem .75rem;
+    font-size: .8rem;
     font-weight: 600;
     cursor: pointer;
-    color: var(--accent);
-    transition: background .15s;
+    color: #fff;
+    transition: opacity .15s;
+    white-space: nowrap;
   }
-  .add-btn:hover { background: #eef2ff; }
+  .add-btn:hover { opacity: .85; }
+
+  /* Editable stat */
+  .stat.editable { cursor: pointer; }
+  .stat.editable:hover { background: #f0f0fe; border-color: #c7c7f9; }
+  .stat-edit-input {
+    width: 100%;
+    border: none;
+    border-bottom: 2px solid var(--accent);
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: transparent;
+    outline: none;
+    padding: 0;
+    color: var(--text);
+  }
 
   /* ── Time allocation section ── */
   .time-section { margin-bottom: 2rem; }
@@ -467,8 +487,8 @@
       <div class="stat-label">Progress</div>
       <div class="stat-val" id="stat-pct">0%</div>
     </div>
-    <div class="stat">
-      <div class="stat-label">Free hrs/mo</div>
+    <div class="stat editable" id="stat-free-card" title="Tap to edit">
+      <div class="stat-label">Free hrs/mo ✎</div>
       <div class="stat-val" id="stat-free">—</div>
     </div>
     <div class="stat">
@@ -563,13 +583,12 @@ const DEFAULT_TIME = [
   { label: "Finances",         color: "#84cc16", pct: 2  },
 ];
 
-const HOURS_IN_MONTH = 730;
-
 // ── State ─────────────────────────────────────────────────────────────────────
 
 let currentMonth = todayMonth();
 let goals        = [];
 let timeBudget   = DEFAULT_TIME.map(t => ({...t}));
+let freeHrs      = 146;
 let reflection   = "";
 let unsubGoals   = null;
 let unsubTime    = null;
@@ -628,15 +647,23 @@ function subscribe(month) {
   if (unsubTime)  unsubTime();
   if (unsubRef)   unsubRef();
 
-  const q = query(collection(db, "goals"), where("month", "==", month), orderBy("createdAt"));
+  // No orderBy — avoids composite index requirement; sort client-side instead
+  const q = query(collection(db, "goals"), where("month", "==", month));
   unsubGoals = onSnapshot(q, s => {
-    goals = s.docs.map(d => ({ id: d.id, ...d.data() }));
+    goals = s.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (a.createdAt?.seconds ?? 0) - (b.createdAt?.seconds ?? 0));
     renderGoals();
     renderStats();
   });
 
   unsubTime = onSnapshot(doc(db, "timeBudget", month), s => {
-    timeBudget = s.exists() ? s.data().categories : DEFAULT_TIME.map(t => ({...t}));
+    if (s.exists()) {
+      timeBudget = s.data().categories ?? DEFAULT_TIME.map(t => ({...t}));
+      freeHrs    = s.data().freeHrs    ?? 146;
+    } else {
+      timeBudget = DEFAULT_TIME.map(t => ({...t}));
+      freeHrs    = 146;
+    }
     renderTime();
     renderStats();
   });
@@ -674,9 +701,10 @@ function renderStats() {
   document.getElementById("progress-line").textContent = `${done} of ${total} goals complete`;
   document.getElementById("stat-days").textContent = daysLeftInMonth(currentMonth);
 
-  const freeCat = timeBudget.find(t => t.label.toLowerCase().includes("free") || t.label.toLowerCase().includes("buffer"));
-  const freeHrs = freeCat ? Math.round((freeCat.pct / 100) * HOURS_IN_MONTH) : "—";
-  document.getElementById("stat-free").textContent = freeHrs;
+  // Only update if not currently being edited
+  if (!document.getElementById("stat-free-input")) {
+    document.getElementById("stat-free").textContent = freeHrs;
+  }
 }
 
 // ── Render: goals ─────────────────────────────────────────────────────────────
@@ -780,11 +808,9 @@ function renderTime() {
   const barsRow = document.getElementById("bars-row");
   barsRow.innerHTML = "";
   const tooltip = document.getElementById("bar-tooltip");
-  const HOURS_PER_WEEK = 168;
-
   function showTooltip(e, t) {
-    const hrsWeek = Math.round((t.pct / 100) * HOURS_PER_WEEK);
-    tooltip.innerHTML = `<strong>${t.label}</strong>${t.pct}% · ~${hrsWeek} hrs/week`;
+    const hrs = Math.round((t.pct / 100) * freeHrs);
+    tooltip.innerHTML = `<strong>${t.label}</strong>${t.pct}% · ~${hrs} hrs/mo`;
     tooltip.classList.add("show");
     moveTooltip(e);
   }
@@ -828,7 +854,7 @@ function renderTimeEdit() {
   const rows = document.getElementById("time-edit-rows");
   rows.innerHTML = "";
   timeBudget.forEach((t, i) => {
-    const hrs = Math.round((t.pct / 100) * HOURS_IN_MONTH);
+    const hrs = Math.round((t.pct / 100) * freeHrs);
     const row = document.createElement("div");
     row.className = "time-edit-row";
     row.innerHTML = `
@@ -850,7 +876,7 @@ function updateTotal() {
   inputs.forEach(inp => {
     const v = Math.max(0, Math.min(100, Number(inp.value) || 0));
     sum += v;
-    const hrs = Math.round((v / 100) * HOURS_IN_MONTH);
+    const hrs = Math.round((v / 100) * freeHrs);
     const hrsEl = document.getElementById(`ehrs-${inp.dataset.i}`);
     if (hrsEl) hrsEl.textContent = `~${hrs} hrs`;
   });
@@ -864,7 +890,7 @@ async function saveTimeBudget() {
   const cats = timeBudget.map((t, i) => ({
     ...t, pct: Math.max(0, Math.min(100, Number(inputs[i].value) || 0))
   }));
-  await setDoc(doc(db, "timeBudget", currentMonth), { categories: cats });
+  await setDoc(doc(db, "timeBudget", currentMonth), { categories: cats, freeHrs });
   toast("Budget saved!");
 }
 
@@ -904,6 +930,42 @@ document.getElementById("time-edit-toggle").addEventListener("click", () => {
 document.getElementById("checkin-btn").addEventListener("click", () => {
   document.getElementById("reflection-input").focus();
   document.getElementById("reflection-input").scrollIntoView({ behavior: "smooth", block: "center" });
+});
+
+// ── Editable free hrs stat card ───────────────────────────────────────────────
+
+document.getElementById("stat-free-card").addEventListener("click", () => {
+  const valEl = document.getElementById("stat-free");
+  if (document.getElementById("stat-free-input")) return; // already editing
+  const input = document.createElement("input");
+  input.id        = "stat-free-input";
+  input.type      = "number";
+  input.min       = 1;
+  input.max       = 730;
+  input.value     = freeHrs;
+  input.className = "stat-edit-input";
+  valEl.replaceWith(input);
+  input.select();
+
+  async function commit() {
+    const v = Math.max(1, Math.min(730, Number(input.value) || freeHrs));
+    freeHrs = v;
+    const span = document.createElement("div");
+    span.id        = "stat-free";
+    span.className = "stat-val";
+    span.textContent = v;
+    input.replaceWith(span);
+    // Save to Firestore immediately
+    const existing = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js")
+      .then(m => m.getDoc(doc(db, "timeBudget", currentMonth)));
+    const cats = existing.exists() ? (existing.data().categories ?? timeBudget) : timeBudget;
+    await setDoc(doc(db, "timeBudget", currentMonth), { categories: cats, freeHrs: v });
+    renderTimeEdit(); // refresh hrs column
+    toast(`Free hrs set to ${v}`);
+  }
+
+  input.addEventListener("blur", commit);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") input.blur(); });
 });
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
